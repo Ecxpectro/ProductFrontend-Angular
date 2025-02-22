@@ -8,6 +8,8 @@ import {MatButtonModule} from '@angular/material/button'
 import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator'
 import {MatTableDataSource, MatTableModule} from '@angular/material/table'
 import { Router } from '@angular/router';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 
 @Component({
@@ -17,6 +19,7 @@ import { Router } from '@angular/router';
   styleUrl: './product-list.component.css'
 })
 export class ProductListComponent implements OnInit {
+  private dialog = inject(MatDialog)
   private router= inject(Router)
   private productService = inject(ProductService);
 
@@ -49,7 +52,16 @@ export class ProductListComponent implements OnInit {
     this.router.navigate([path]);
   }
 
-  deleteProduct(id?:number){
-
+  deleteProduct(id:number){
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
+    dialogRef.afterClosed().subscribe((result) => {
+      if(result){
+        this.productService.deleteProduct(id).subscribe( () =>{
+          const updatedProducts = this.products().filter((product => product.id !== id));
+          this.products.set(updatedProducts);
+          this.updateTableData();
+        })
+      }
+    })
   }
 }
